@@ -1,0 +1,207 @@
+/**
+ * @file This file contains all config settings for all the Gulp tasks.
+ */
+
+'use strict';
+
+import config from './config';
+import glob from 'glob';
+import path from 'path';
+import webpack from 'webpack';
+import { env as $env } from 'gulp-util';
+
+/**
+ * Supported options specified through CLI params when executing Gulp tasks.
+ * @type {boolean} --debug, --d - Specifies debug environment (skipping asset
+ *                                compression and revision). This can also be
+ *                                enabled by setting NODE_ENV=development.
+ * @type {boolean} --serve, --s - Specifies whether the app will be served.
+ * @type {boolean} --watch, --w - Specifies whether files should be watched.
+ */
+const env = {
+  debug: $env['debug'] || $env['d'] || process.env.NODE_ENV === 'development',
+  serve: $env['serve'] || $env['s'],
+  watch: $env['watch'] || $env['w']
+};
+
+// Common extensions per file type for glob patterns.
+const patterns = {
+  images: '{.jpg,.jpeg,.gif,.png,.svg,.ico}',
+  videos: '{.ogv,.mp4,.mov}',
+  scripts: '{.js,.coffee}',
+  sourcemaps: '{.css.map,.js.map}',
+  styles: '{.css,.scss,.sass}',
+  templates: '{.html,.jade}',
+  data: '{.json,.yml,.csv}',
+  fonts: '{.eot,.otf,.ttf,.woff,.woff2}',
+  documents: '{.pdf,.doc}',
+  configurations: '{.htaccess,.txt}'
+};
+
+// Common paths used throughout the Gulp pipeline.
+const paths = {
+  base: path.join(__dirname),
+  config: path.join(__dirname, 'config'),
+  modules: path.join(__dirname, 'node_modules'),
+  src: path.join(__dirname, 'app'),
+  build: path.join(__dirname, 'public')
+};
+
+export default {
+  env: env,
+  paths: paths,
+  clean: {
+    entry: path.join(paths.build)
+  },
+  fonts: {
+    entry: path.join(paths.src, '**', '*' + patterns.fonts),
+    output: path.join(paths.build)
+  },
+  images: {
+    entry: path.join(paths.src, '**', '*' + patterns.images),
+    output: path.join(paths.build)
+  },
+  documents: {
+    entry: path.join(paths.src, '**', '*' + patterns.documents),
+    output: path.join(paths.build)
+  },
+  videos: {
+    entry: path.join(paths.src, '**', '*' + patterns.videos),
+    output: path.join(paths.build)
+  },
+  configurations: {
+    entry: path.join(paths.src, '{*,}' + patterns.configurations),
+    output: path.join(paths.build)
+  },
+  styles: {
+    cssGlobbing: {
+      extensions: patterns.styles.replace('{', '').replace('}', '').split(',')
+    },
+    entry: path.join(paths.src, 'assets', 'stylesheets', 'application' + patterns.styles),
+    autoprefixer: {
+      browsers: ['last 2 version']
+    },
+    sass: {
+      outputStyle: env.debug ? 'expanded' : 'compressed',
+      includePaths: [
+        path.join(paths.modules),
+        path.join(paths.src, 'assets', 'stylesheets')
+      ],
+    },
+    output: path.join(paths.build, 'assets', 'stylesheets')
+  },
+  scripts: {
+    cache: true,
+    context: path.join(paths.src, 'assets', 'javascripts'),
+    debug: env.debug,
+    devtool: env.debug ? 'eval-source-map' : null,
+    entry: {
+      vendor: glob.sync(path.join(paths.src, 'assets', 'vendor', '**', '*' + patterns.scripts))
+    },
+    output: {
+      path: path.join(paths.build, 'assets', 'javascripts'),
+      publicPath: 'javascripts/',
+      filename: '[name].js',
+      chunkFilename: '[chunkhash].js',
+      sourceMapFilename: '[file].map'
+    },
+    module: {
+      loaders: [{
+        test: path.join(paths.src, 'assets', 'vendor'),
+        loader: 'imports?module=>false,define=>false,exports=>false,this=>window'
+      }, {
+        test: path.join(paths.src, 'assets', 'javascripts'),
+        loader: 'babel-loader',
+        query: { presets: ['es2015'] }
+      }, {
+        test: new RegExp(`${paths.config}.*.json$`),
+        loader: 'json-loader'
+      }],
+      noParse: [
+        new RegExp(`${path.join(paths.src, 'assets', 'vendor')}.*${patterns.scripts.replace('{', '(').replace('}', ')').replace(',', '|')}$`)
+      ]
+    },
+    resolve: {
+      extensions: ['', '.js', '.json'],
+      modulesDirectories: [paths.modules]
+    },
+    plugins: env.skipJSMin ? [
+      new webpack.optimize.CommonsChunkPlugin('vendor', 'vendor.js')
+    ] : [
+      new webpack.optimize.CommonsChunkPlugin('vendor', 'vendor.js'),
+      new webpack.optimize.UglifyJsPlugin({ compress: { warnings: false } })
+    ]
+  },
+  templates: {
+    input: path.join(paths.src, 'templates', 'views', '**', '*' + patterns.templates),
+    output: paths.build,
+    jade: {
+      basedir: path.join(paths.src, 'templates'),
+      pretty: env.debug
+    },
+    externals: {
+      config: path.join(paths.base, 'config')
+    }
+  },
+  rev: {
+    entry: [
+      path.join(paths.build, '**', '*' + patterns.images),
+      path.join(paths.build, '**', '*' + patterns.styles),
+      path.join(paths.build, '**', '*' + patterns.scripts),
+      `!${path.join(paths.build, '**', 'favicon.ico')}`
+    ],
+    output: path.join(paths.build),
+    manifestFile: 'rev-manifest.json',
+    replace: [
+      path.join(paths.build, '**', '*' + patterns.templates),
+      path.join(paths.build, '**', '*' + patterns.styles),
+      path.join(paths.build, '**', '*' + patterns.scripts)
+    ]
+  },
+  sitemap: {
+    entry: [
+      path.join(paths.build, '**', '*' + patterns.templates),
+      `!${path.join(paths.build, '**', '404' + patterns.templates)}`,
+      `!${path.join(paths.build, '**', '500' + patterns.templates)}`
+    ],
+    output: path.join(paths.build)
+  },
+  deploy: {
+    entry: path.join(paths.build, '**', '*')
+  },
+  serve: {
+    server: {
+      baseDir: paths.build
+    },
+    files: path.join(paths.build, '**', '*'),
+    notify: false,
+    browser: 'google chrome',
+    open: false,
+    port: process.env.PORT || 9000
+  },
+  watch: [{
+    files: path.join(paths.base, 'config', 'index' + patterns.data),
+    tasks: ['images', 'videos', 'fonts', 'documents', 'configurations', 'styles', 'scripts', 'templates']
+  }, {
+    files: path.join(paths.base, 'config', 'locales', '**', '*' + patterns.data),
+    tasks: ['templates']
+  }, {
+    files: path.join(paths.src, '**', '*' + patterns.images),
+    tasks: ['images']
+  }, {
+    files: path.join(paths.src, '**', '*' + patterns.videos),
+    tasks: ['videos']
+  }, {
+    files: path.join(paths.src, '**', '*' + patterns.fonts),
+    tasks: ['fonts']
+  }, {
+    files: path.join(paths.src, '**', '*' + patterns.documents),
+    tasks: ['documents']
+  }, {
+    files: [path.join(paths.src, '**', '*' + patterns.styles)],
+    tasks: ['styles']
+  }, {
+    files: path.join(paths.src, '**', '*' + patterns.templates),
+    tasks: ['templates']
+  }]
+};

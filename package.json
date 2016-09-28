@@ -1,0 +1,62 @@
+{
+  "name": "nwjs-test",
+  "version": "0.1.0",
+  "description": "",
+  "main": "app.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "node app",
+    "clean": "gulp clean",
+    "build": "gulp",
+    "deploy": "gulp deploy",
+    "deploy:dev": "gulp deploy --debug",
+    "dev": "NODE_ENV=development gulp --watch --serve",
+    "prod": "NODE_ENV=production npm run build && npm start"
+  },
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "compression": "^1.6.1",
+    "cookie-parser": "^1.4.1",
+    "express": "^4.13.4",
+    "lodash": "^4.1.0",
+    "morgan": "^1.6.1",
+    "page": "^1.6.4",
+    "serve-favicon": "^2.3.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^6.3.1",
+    "babel-core": "^6.4.5",
+    "babel-loader": "^6.2.1",
+    "babel-preset-es2015": "^6.1.18",
+    "browser-sync": "^2.11.1",
+    "del": "^2.1.0",
+    "gulp": "^3.9.0",
+    "gulp-css-globbing": "^0.1.8",
+    "gulp-data": "^1.2.1",
+    "gulp-jade": "^1.1.0",
+    "gulp-postcss": "^6.0.1",
+    "gulp-replace": "^0.5.4",
+    "gulp-rev": "^6.0.1",
+    "gulp-sass": "^2.1.0",
+    "gulp-sitemap": "^4.0.0",
+    "gulp-size": "^2.0.0",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-util": "^3.0.7",
+    "imports-loader": "^0.6.5",
+    "json-loader": "^0.5.4",
+    "merge-stream": "^1.0.0",
+    "run-sequence": "^1.1.5",
+    "superagent": "^1.7.2",
+    "vinyl-ftp": "^0.4.5",
+    "webpack": "^1.12.12"
+  },
+  "files": [
+    "public",
+    "app.js"
+  ],
+  "engines": {
+    "node": ">=5.0.0",
+    "npm": ">=3.3.10"
+  }
+}

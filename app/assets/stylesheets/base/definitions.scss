@@ -1,0 +1,19 @@
+/// @file Global definitions.
+
+/// Paths to directories containing static files (i.e. images, videos,
+/// stylesheets, and JavaScripts).
+///
+/// @param {string} $type ['base'] - Specifies the type of the path.
+@function path($type:'base') {
+  $paths: (
+    'base': '../../',
+    'images': '../../images/',
+    'styles': '../../stylesheets/',
+    'scripts': '../../scripts/',
+    'videos': '../../videos/',
+    'documents': '../../documents/',
+    'fonts': '../../fonts/'
+  );
+
+  @return map-get($paths, $type);
+}

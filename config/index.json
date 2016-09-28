@@ -1,0 +1,9 @@
+{
+  "defaultTitle": "BAM",
+  "url": "http://example.com",
+  "ga": null,
+  "tk": null,
+  "locales": ["en"],
+  "autoRouting": true,
+  "webRoot": ""
+}
